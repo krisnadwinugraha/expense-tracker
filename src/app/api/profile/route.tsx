@@ -6,7 +6,7 @@ import { getServerSession } from 'next-auth/next'
 
 import bcrypt from 'bcrypt'
 
-import { authOptions } from '../auth/[...nextauth]/route'
+import { authOptions } from '@/libs/auth'
 
 const prisma = new PrismaClient()
 
@@ -33,8 +33,8 @@ export async function GET() {
     return NextResponse.json(user)
   } catch (error) {
     console.error('[PROFILE_GET]', error)
-    
-return new NextResponse('Internal Error', { status: 500 })
+
+    return new NextResponse('Internal Error', { status: 500 })
   }
 }
 
@@ -71,7 +71,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json(updatedUser)
   } catch (error) {
     console.error('[PROFILE_PATCH]', error)
-    
-return new NextResponse('Internal Error', { status: 500 })
+
+    return new NextResponse('Internal Error', { status: 500 })
   }
 }

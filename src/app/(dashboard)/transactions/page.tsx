@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next'
 
 import { PrismaClient } from '@prisma/client'
 
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/libs/auth'
 import TransactionsView from '@views/transactions'
 
 const prisma = new PrismaClient()

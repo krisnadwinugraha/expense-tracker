@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 
-import { authOptions } from '../../auth/[...nextauth]/route'
+import { authOptions } from '@/libs/auth'
 
 const prisma = new PrismaClient()
 
@@ -47,8 +47,8 @@ export async function PATCH(req: Request, { params }: { params: { categoryId: st
     return NextResponse.json(updatedCategory)
   } catch (error) {
     console.error('[CATEGORY_PATCH]', error)
-    
-return new NextResponse('Internal Error', { status: 500 })
+
+    return new NextResponse('Internal Error', { status: 500 })
   }
 }
 
@@ -81,7 +81,7 @@ export async function DELETE(req: Request, { params }: { params: { categoryId: s
     return new NextResponse(null, { status: 204 })
   } catch (error) {
     console.error('[CATEGORY_DELETE]', error)
-    
-return new NextResponse('Internal Error', { status: 500 })
+
+    return new NextResponse('Internal Error', { status: 500 })
   }
 }

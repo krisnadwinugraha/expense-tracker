@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server'
 import { PrismaClient, TransactionType } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 
-import { authOptions } from '../auth/[...nextauth]/route'
+import { authOptions } from '@/libs/auth'
 
 const prisma = new PrismaClient()
 
@@ -65,8 +65,8 @@ export async function GET(req: Request) {
     })
   } catch (error) {
     console.error('[TRANSACTIONS_GET]', error)
-    
-return new NextResponse('Internal Error', { status: 500 })
+
+    return new NextResponse('Internal Error', { status: 500 })
   }
 }
 
@@ -124,7 +124,7 @@ export async function POST(req: Request) {
     return NextResponse.json(newTransaction)
   } catch (error) {
     console.error('[TRANSACTIONS_POST]', error)
-    
-return new NextResponse('Internal Error', { status: 500 })
+
+    return new NextResponse('Internal Error', { status: 500 })
   }
 }
