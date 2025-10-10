@@ -1,7 +1,9 @@
 // src/app/api/summary/route.ts
 import { NextResponse } from 'next/server'
+
 import { PrismaClient, TransactionType } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
+
 import { authOptions } from '../auth/[...nextauth]/route'
 
 const prisma = new PrismaClient()
@@ -56,6 +58,7 @@ export async function GET() {
     return NextResponse.json(summary)
   } catch (error) {
     console.error('[SUMMARY_GET]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+    
+return new NextResponse('Internal Error', { status: 500 })
   }
 }

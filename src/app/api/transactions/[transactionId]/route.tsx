@@ -1,7 +1,9 @@
 // src/app/api/transactions/[transactionId]/route.ts
 import { NextResponse } from 'next/server'
+
 import { PrismaClient, TransactionType } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
+
 import { authOptions } from '../../auth/[...nextauth]/route' // Adjust path
 
 const prisma = new PrismaClient()
@@ -55,6 +57,7 @@ export async function PATCH(req: Request, { params }: { params: { transactionId:
           categoryId
         }
       }),
+
       // 2. Update the balance of the associated account
       prisma.account.update({
         where: {
@@ -71,7 +74,8 @@ export async function PATCH(req: Request, { params }: { params: { transactionId:
     return NextResponse.json(updatedTransaction)
   } catch (error) {
     console.error('[TRANSACTION_PATCH]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+    
+return new NextResponse('Internal Error', { status: 500 })
   }
 }
 
@@ -112,6 +116,7 @@ export async function DELETE(req: Request, { params }: { params: { transactionId
           id: params.transactionId
         }
       }),
+
       // 2. Update the account balance to reverse the transaction
       prisma.account.update({
         where: {
@@ -128,6 +133,7 @@ export async function DELETE(req: Request, { params }: { params: { transactionId
     return new NextResponse(null, { status: 204 }) // Success, no content
   } catch (error) {
     console.error('[TRANSACTION_DELETE]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+    
+return new NextResponse('Internal Error', { status: 500 })
   }
 }

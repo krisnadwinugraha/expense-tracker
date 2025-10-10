@@ -24,6 +24,7 @@ import Button from '@mui/material/Button'
 // --- MODIFICATION START ---
 // NextAuth Imports
 import { useSession, signOut } from 'next-auth/react'
+
 // --- MODIFICATION END ---
 
 // Styled component for badge content
@@ -46,8 +47,10 @@ const UserDropdown = () => {
   // --- MODIFICATION START ---
   // Hooks
   const router = useRouter()
+
   // Get session data and status from NextAuth
   const { data: session, status } = useSession()
+
   // --- MODIFICATION END ---
 
   const handleDropdownOpen = () => {
@@ -86,6 +89,7 @@ const UserDropdown = () => {
       </Button>
     )
   }
+
   // --- MODIFICATION END ---
 
   // Only render the dropdown if the user is authenticated
@@ -100,8 +104,10 @@ const UserDropdown = () => {
       >
         <Avatar
           ref={anchorRef}
+
           // --- MODIFICATION START ---
           alt={session?.user?.name || 'User Avatar'}
+
           // --- MODIFICATION END ---
           src='/images/avatars/1.png'
           onClick={handleDropdownOpen}
@@ -150,6 +156,7 @@ const UserDropdown = () => {
                       color='error'
                       size='small'
                       endIcon={<i className='ri-logout-box-r-line' />}
+
                       // --- MODIFICATION START ---
                       onClick={handleLogout} // Use the new logout function
                       // --- MODIFICATION END ---

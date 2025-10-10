@@ -2,6 +2,7 @@
 'use client'
 
 import Grid from '@mui/material/Grid'
+
 import StatCard from './StatCard' // Import our new component
 
 // Import any other components from the template you want to keep

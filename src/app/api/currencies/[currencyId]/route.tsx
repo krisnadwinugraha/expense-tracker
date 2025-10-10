@@ -1,5 +1,6 @@
 // src/app/api/currencies/[currencyId]/route.ts
 import { NextResponse } from 'next/server'
+
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -22,7 +23,8 @@ export async function PATCH(req: Request, { params }: { params: { currencyId: st
     return NextResponse.json(updatedCurrency)
   } catch (error) {
     console.error('[CURRENCY_PATCH]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+    
+return new NextResponse('Internal Error', { status: 500 })
   }
 }
 
@@ -45,6 +47,7 @@ export async function DELETE(req: Request, { params }: { params: { currencyId: s
     return new NextResponse(null, { status: 204 })
   } catch (error) {
     console.error('[CURRENCY_DELETE]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+    
+return new NextResponse('Internal Error', { status: 500 })
   }
 }

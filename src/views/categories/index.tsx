@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+
 import type { Category } from '@prisma/client'
 
 // MUI Imports
@@ -44,8 +45,10 @@ const CategoriesView = () => {
   // --- Data Fetching ---
   const fetchCategories = async () => {
     const res = await fetch('/api/categories')
+
     if (res.ok) {
       const data = await res.json()
+
       setCategories(data)
     }
   }
@@ -96,8 +99,10 @@ const CategoriesView = () => {
       handleClose()
     } else {
       const data = await res.json()
+
       setError(data.message || `Failed to ${method === 'POST' ? 'create' : 'update'} category.`)
     }
+
     setIsSubmitting(false)
   }
 
@@ -125,6 +130,7 @@ const CategoriesView = () => {
           <CardHeader
             title='Transaction Categories'
             subheader='Manage your custom categories for income and expenses.'
+
             // The "Add New" button is in the header
             action={
               <Button variant='contained' onClick={handleOpenAdd} startIcon={<i className='ri-add-line' />}>

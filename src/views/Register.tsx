@@ -41,6 +41,7 @@ const Register = ({ mode }: { mode: Mode }) => {
 
   // Hooks
   const router = useRouter()
+
   // --- MODIFICATION END ---
 
   const darkImg = '/images/pages/auth-v1-mask-dark.png'
@@ -68,6 +69,7 @@ const Register = ({ mode }: { mode: Mode }) => {
         router.push('/login')
       } else {
         const data = await res.json()
+
         setError(data.message || 'Registration failed.')
       }
     } catch (err) {
@@ -75,6 +77,7 @@ const Register = ({ mode }: { mode: Mode }) => {
       console.error(err)
     }
   }
+
   // --- MODIFICATION END ---
 
   return (

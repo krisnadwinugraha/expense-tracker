@@ -1,7 +1,9 @@
 // src/app/api/charts/route.ts
 import { NextResponse } from 'next/server'
+
 import { PrismaClient, TransactionType } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
+
 import { authOptions } from '../auth/[...nextauth]/route'
 
 const prisma = new PrismaClient()
@@ -40,6 +42,7 @@ export async function GET(req: Request) {
 
       monthlyExpenses.forEach(item => {
         const month = new Date(item.date).getMonth()
+
         if (item._sum.amount) {
           monthlyTotals[month] += item._sum.amount
         }
@@ -64,12 +67,14 @@ export async function GET(req: Request) {
 
       // Process data into a daily format
       const daysInMonth = monthEnd.getDate()
+
       const dailyTotals = Array(daysInMonth)
         .fill(0)
         .map((_, i) => ({ day: i + 1, total: 0 }))
 
       dailyExpenses.forEach(item => {
         const day = new Date(item.date).getDate()
+
         dailyTotals[day - 1].total += item.amount
       })
 
@@ -82,6 +87,7 @@ export async function GET(req: Request) {
     return new NextResponse('Invalid chart type', { status: 400 })
   } catch (error) {
     console.error('[CHARTS_GET]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+    
+return new NextResponse('Internal Error', { status: 500 })
   }
 }

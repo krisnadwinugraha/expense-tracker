@@ -30,12 +30,15 @@ const AccountTab = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       const res = await fetch('/api/profile')
+
       if (res.ok) {
         const data = await res.json()
+
         setProfile(data)
         setName(data.name || '')
       }
     }
+
     fetchProfile()
   }, [])
 
@@ -47,10 +50,12 @@ const AccountTab = () => {
     if (password && password !== confirmPassword) {
       setMessage('Passwords do not match.')
       setIsSubmitting(false)
-      return
+      
+return
     }
 
     const dataToUpdate: { name: string; password?: string } = { name }
+
     if (password) {
       dataToUpdate.password = password
     }
@@ -68,6 +73,7 @@ const AccountTab = () => {
     } else {
       setMessage('Failed to update profile.')
     }
+
     setIsSubmitting(false)
   }
 

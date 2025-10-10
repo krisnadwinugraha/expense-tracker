@@ -2,7 +2,9 @@
 'use client'
 
 import { useState } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import type { Account, Category, Currency, Transaction } from '@prisma/client'
 
 // MUI Imports
@@ -112,8 +114,10 @@ const TransactionsView = ({ initialData }: { initialData: TransactionData }) => 
       handleClose()
     } else {
       const data = await res.json()
+
       setError(data.message || `Failed to ${method === 'POST' ? 'create' : 'update'} transaction.`)
     }
+
     setIsSubmitting(false)
   }
 

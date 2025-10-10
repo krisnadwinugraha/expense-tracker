@@ -1,9 +1,12 @@
 // src/app/api/profile/route.ts
 import { NextResponse } from 'next/server'
+
 import { PrismaClient } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../auth/[...nextauth]/route'
+
 import bcrypt from 'bcrypt'
+
+import { authOptions } from '../auth/[...nextauth]/route'
 
 const prisma = new PrismaClient()
 
@@ -18,6 +21,7 @@ export async function GET() {
   try {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
+
       // Exclude the password hash from the response
       select: { id: true, name: true, email: true }
     })
@@ -29,7 +33,8 @@ export async function GET() {
     return NextResponse.json(user)
   } catch (error) {
     console.error('[PROFILE_GET]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+    
+return new NextResponse('Internal Error', { status: 500 })
   }
 }
 
@@ -54,6 +59,7 @@ export async function PATCH(req: Request) {
     // If a new password is provided, hash it before updating
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10)
+
       dataToUpdate.password = hashedPassword
     }
 
@@ -65,6 +71,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json(updatedUser)
   } catch (error) {
     console.error('[PROFILE_PATCH]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+    
+return new NextResponse('Internal Error', { status: 500 })
   }
 }

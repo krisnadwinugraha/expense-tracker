@@ -1,5 +1,6 @@
 // src/app/api/currencies/route.ts
 import { NextResponse } from 'next/server'
+
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -10,10 +11,13 @@ export async function GET() {
     const currencies = await prisma.currency.findMany({
       orderBy: { name: 'asc' }
     })
-    return NextResponse.json(currencies)
+
+    
+return NextResponse.json(currencies)
   } catch (error) {
     console.error('[CURRENCIES_GET]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+    
+return new NextResponse('Internal Error', { status: 500 })
   }
 }
 
@@ -39,6 +43,7 @@ export async function POST(req: Request) {
     return NextResponse.json(currency)
   } catch (error) {
     console.error('[CURRENCIES_POST]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+    
+return new NextResponse('Internal Error', { status: 500 })
   }
 }

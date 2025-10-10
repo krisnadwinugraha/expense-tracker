@@ -1,8 +1,10 @@
 // src/app/api/accounts/route.ts
 
 import { NextResponse } from 'next/server'
+
 import { PrismaClient } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
+
 import { authOptions } from '../auth/[...nextauth]/route' // Adjust path if needed
 
 const prisma = new PrismaClient()
@@ -31,7 +33,8 @@ export async function GET() {
     return NextResponse.json(accounts)
   } catch (error) {
     console.error('[ACCOUNTS_GET]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+    
+return new NextResponse('Internal Error', { status: 500 })
   }
 }
 
@@ -62,6 +65,7 @@ export async function POST(req: Request) {
     return NextResponse.json(account)
   } catch (error) {
     console.error('[ACCOUNTS_POST]', error)
-    return new NextResponse('Internal Error', { status: 500 })
+    
+return new NextResponse('Internal Error', { status: 500 })
   }
 }

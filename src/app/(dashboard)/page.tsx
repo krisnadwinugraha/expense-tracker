@@ -1,7 +1,9 @@
 // src/app/(main)/page.tsx
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { headers } from 'next/headers'
+
+import { getServerSession } from 'next-auth/next'
+
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 
 // Import your existing dashboard view
 import DashboardAnalytics from '@views/dashboard/Analytics'
@@ -25,7 +27,8 @@ async function getSummaryData(): Promise<SummaryData> {
 
   if (!res.ok) {
     console.error('Failed to fetch summary data')
-    return { totalIncome: 0, totalExpense: 0, netIncome: 0, totalBalance: 0 }
+    
+return { totalIncome: 0, totalExpense: 0, netIncome: 0, totalBalance: 0 }
   }
 
   return res.json()

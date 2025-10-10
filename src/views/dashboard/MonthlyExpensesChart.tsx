@@ -2,10 +2,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+
+import dynamic from 'next/dynamic'
+
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-import dynamic from 'next/dynamic'
 import type { ApexOptions } from 'apexcharts'
 import { Skeleton, Typography } from '@mui/material' // Import Skeleton and Typography
 
@@ -20,17 +22,21 @@ const MonthlyExpensesChart = () => {
     const fetchData = async () => {
       setLoading(true)
       setError(null)
+
       try {
         const res = await fetch('/api/charts?type=monthly_this_year')
 
         if (!res.ok) {
           const errorText = await res.text()
+
           console.error('API responded with an error:', res.status, errorText)
           setError('Failed to load chart data.')
-          return
+          
+return
         }
 
         const data = await res.json()
+
         setChartData(data)
       } catch (e) {
         console.error('A network or JSON parsing error occurred:', e)
@@ -39,6 +45,7 @@ const MonthlyExpensesChart = () => {
         setLoading(false)
       }
     }
+
     fetchData()
   }, [])
 

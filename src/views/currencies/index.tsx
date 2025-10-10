@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import type { Currency } from '@prisma/client'
 
 // MUI Imports
@@ -12,6 +14,7 @@ import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Table from '@mui/material/Table'
+
 // ... (include all other necessary MUI imports like TableBody, TableCell, etc.)
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
@@ -77,8 +80,10 @@ const CurrenciesView = ({ initialData }: { initialData: Currency[] }) => {
       handleClose()
     } else {
       const data = await res.json()
+
       setError(data.message || 'Failed to save currency.')
     }
+
     setIsSubmitting(false)
   }
 
@@ -92,6 +97,7 @@ const CurrenciesView = ({ initialData }: { initialData: Currency[] }) => {
       router.refresh()
     } else {
       const data = await res.json()
+
       alert(`Failed to delete currency: ${data.message || 'Unknown error'}`)
     }
   }

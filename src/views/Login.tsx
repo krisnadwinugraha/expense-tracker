@@ -81,6 +81,7 @@ const Login = ({ mode }: { mode: Mode }) => {
       setError('An unexpected error occurred. Please try again.')
     }
   }
+
   // --- MODIFICATION END ---
 
   return (

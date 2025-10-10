@@ -1,7 +1,9 @@
 // src/app/(main)/accounts/page.tsx
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+
 import { PrismaClient } from '@prisma/client'
+
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import AccountsView from '@views/accounts'
 
 const prisma = new PrismaClient()

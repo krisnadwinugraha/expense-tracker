@@ -2,7 +2,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+
 import { useRouter } from 'next/navigation'
+
 import type { Currency } from '@prisma/client'
 
 export const AddAccountForm = () => {
@@ -19,11 +21,14 @@ export const AddAccountForm = () => {
     const fetchCurrencies = async () => {
       const res = await fetch('/api/currencies')
       const data = await res.json()
+
       setCurrencies(data)
+
       if (data.length > 0) {
         setCurrencyId(String(data[0].id)) // Set a default
       }
     }
+
     fetchCurrencies()
   }, [])
 
@@ -43,8 +48,10 @@ export const AddAccountForm = () => {
       router.refresh() // Refresh the page to show the new account in the list
     } else {
       const data = await res.json()
+
       setError(data.message || 'Failed to create account.')
     }
+
     setIsSubmitting(false)
   }
 

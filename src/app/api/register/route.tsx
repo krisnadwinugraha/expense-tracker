@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt'
 
@@ -34,6 +35,7 @@ export async function POST(request) {
     return NextResponse.json(user)
   } catch (error) {
     console.error('REGISTRATION_ERROR', error)
-    return new NextResponse('Internal Server Error', { status: 500 })
+    
+return new NextResponse('Internal Server Error', { status: 500 })
   }
 }
