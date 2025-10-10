@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 
 import { authOptions } from '@/libs/auth'
 
