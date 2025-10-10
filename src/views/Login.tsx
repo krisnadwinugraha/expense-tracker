@@ -8,6 +8,9 @@ import type { FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
+// NextAuth Imports (ADD THIS)
+import { signIn } from 'next-auth/react'
+
 // MUI Imports
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -34,8 +37,13 @@ import themeConfig from '@configs/themeConfig'
 import { useImageVariant } from '@core/hooks/useImageVariant'
 
 const Login = ({ mode }: { mode: Mode }) => {
+  // --- MODIFICATION START ---
   // States
   const [isPasswordShown, setIsPasswordShown] = useState(false)
+  const [email, setEmail] = useState('') // Add state for email
+  const [password, setPassword] = useState('') // Add state for password
+  const [error, setError] = useState('') // Add state for login errors
+  // --- MODIFICATION END ---
 
   // Vars
   const darkImg = '/images/pages/auth-v1-mask-dark.png'
@@ -47,10 +55,33 @@ const Login = ({ mode }: { mode: Mode }) => {
 
   const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  // --- MODIFICATION START ---
+  // Replace the old handleSubmit function with this new async version
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    router.push('/')
+    setError('') // Clear previous errors
+
+    try {
+      const result = await signIn('credentials', {
+        redirect: false, // We'll handle success/error manually
+        email: email,
+        password: password
+      })
+
+      if (result?.ok) {
+        // If login is successful, redirect to the dashboard
+        router.push('/')
+      } else {
+        // If there's an error, set the error message to display to the user
+        setError('Invalid email or password.')
+        console.error('Login failed:', result?.error)
+      }
+    } catch (error) {
+      console.error('An unexpected error occurred:', error)
+      setError('An unexpected error occurred. Please try again.')
+    }
   }
+  // --- MODIFICATION END ---
 
   return (
     <div className='flex flex-col justify-center items-center min-bs-[100dvh] relative p-6'>
@@ -65,12 +96,21 @@ const Login = ({ mode }: { mode: Mode }) => {
               <Typography className='mbs-1'>Please sign-in to your account and start the adventure</Typography>
             </div>
             <form noValidate autoComplete='off' onSubmit={handleSubmit} className='flex flex-col gap-5'>
-              <TextField autoFocus fullWidth label='Email' />
+              {/* --- MODIFICATION START --- */}
+              <TextField
+                autoFocus
+                fullWidth
+                label='Email'
+                value={email} // Bind value to state
+                onChange={e => setEmail(e.target.value)} // Update state on change
+              />
               <TextField
                 fullWidth
                 label='Password'
                 id='outlined-adornment-password'
                 type={isPasswordShown ? 'text' : 'password'}
+                value={password} // Bind value to state
+                onChange={e => setPassword(e.target.value)} // Update state on change
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position='end'>
@@ -86,6 +126,13 @@ const Login = ({ mode }: { mode: Mode }) => {
                   )
                 }}
               />
+              {/* Add a place to display the error message */}
+              {error && (
+                <Typography color='error' variant='body2' className='text-center'>
+                  {error}
+                </Typography>
+              )}
+              {/* --- MODIFICATION END --- */}
               <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'>
                 <FormControlLabel control={<Checkbox />} label='Remember me' />
                 <Typography className='text-end' color='primary' component={Link} href='/forgot-password'>

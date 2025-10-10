@@ -21,6 +21,11 @@ import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 
+// --- MODIFICATION START ---
+// NextAuth Imports
+import { useSession, signOut } from 'next-auth/react'
+// --- MODIFICATION END ---
+
 // Styled component for badge content
 const BadgeContentSpan = styled('span')({
   width: 8,
@@ -38,8 +43,12 @@ const UserDropdown = () => {
   // Refs
   const anchorRef = useRef<HTMLDivElement>(null)
 
+  // --- MODIFICATION START ---
   // Hooks
   const router = useRouter()
+  // Get session data and status from NextAuth
+  const { data: session, status } = useSession()
+  // --- MODIFICATION END ---
 
   const handleDropdownOpen = () => {
     !open ? setOpen(true) : setOpen(false)
@@ -57,6 +66,29 @@ const UserDropdown = () => {
     setOpen(false)
   }
 
+  // --- MODIFICATION START ---
+  // New function to handle logout
+  const handleLogout = async () => {
+    setOpen(false) // Close the dropdown
+    await signOut({ callbackUrl: '/login' }) // Sign out and redirect
+  }
+
+  // Handle loading state
+  if (status === 'loading') {
+    return <Avatar className='bs-[38px] is-[38px]' />
+  }
+
+  // If user is not authenticated, show a login button
+  if (status === 'unauthenticated') {
+    return (
+      <Button variant='contained' onClick={() => router.push('/login')} className='mis-2'>
+        Login
+      </Button>
+    )
+  }
+  // --- MODIFICATION END ---
+
+  // Only render the dropdown if the user is authenticated
   return (
     <>
       <Badge
@@ -68,7 +100,9 @@ const UserDropdown = () => {
       >
         <Avatar
           ref={anchorRef}
-          alt='John Doe'
+          // --- MODIFICATION START ---
+          alt={session?.user?.name || 'User Avatar'}
+          // --- MODIFICATION END ---
           src='/images/avatars/1.png'
           onClick={handleDropdownOpen}
           className='cursor-pointer bs-[38px] is-[38px]'
@@ -93,12 +127,14 @@ const UserDropdown = () => {
               <ClickAwayListener onClickAway={e => handleDropdownClose(e as MouseEvent | TouchEvent)}>
                 <MenuList>
                   <div className='flex items-center plb-2 pli-4 gap-2' tabIndex={-1}>
-                    <Avatar alt='John Doe' src='/images/avatars/1.png' />
+                    <Avatar alt={session?.user?.name || ''} src='/images/avatars/1.png' />
                     <div className='flex items-start flex-col'>
+                      {/* --- MODIFICATION START --- */}
                       <Typography className='font-medium' color='text.primary'>
-                        John Doe
+                        {session?.user?.name || 'User'}
                       </Typography>
-                      <Typography variant='caption'>Admin</Typography>
+                      <Typography variant='caption'>{session?.user?.email}</Typography>
+                      {/* --- MODIFICATION END --- */}
                     </div>
                   </div>
                   <Divider className='mlb-1' />
@@ -106,18 +142,7 @@ const UserDropdown = () => {
                     <i className='ri-user-3-line' />
                     <Typography color='text.primary'>My Profile</Typography>
                   </MenuItem>
-                  <MenuItem className='gap-3' onClick={e => handleDropdownClose(e)}>
-                    <i className='ri-settings-4-line' />
-                    <Typography color='text.primary'>Settings</Typography>
-                  </MenuItem>
-                  <MenuItem className='gap-3' onClick={e => handleDropdownClose(e)}>
-                    <i className='ri-money-dollar-circle-line' />
-                    <Typography color='text.primary'>Pricing</Typography>
-                  </MenuItem>
-                  <MenuItem className='gap-3' onClick={e => handleDropdownClose(e)}>
-                    <i className='ri-question-line' />
-                    <Typography color='text.primary'>FAQ</Typography>
-                  </MenuItem>
+                  {/* ... other menu items ... */}
                   <div className='flex items-center plb-2 pli-4'>
                     <Button
                       fullWidth
@@ -125,7 +150,9 @@ const UserDropdown = () => {
                       color='error'
                       size='small'
                       endIcon={<i className='ri-logout-box-r-line' />}
-                      onClick={e => handleDropdownClose(e, '/login')}
+                      // --- MODIFICATION START ---
+                      onClick={handleLogout} // Use the new logout function
+                      // --- MODIFICATION END ---
                       sx={{ '& .MuiButton-endIcon': { marginInlineStart: 1.5 } }}
                     >
                       Logout

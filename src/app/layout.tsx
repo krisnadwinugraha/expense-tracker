@@ -9,11 +9,11 @@ import '@/app/globals.css'
 
 // Generated Icon CSS Imports
 import '@assets/iconify-icons/generated-icons.css'
+import AuthProvider from '@/components/AuthProvider'
 
 export const metadata = {
-  title: 'Demo: Materio - NextJS Dashboard Free',
-  description:
-    'Develop next-level web apps with Materio Dashboard Free - NextJS. Now, updated with lightning-fast routing powered by MUI and App router.'
+  title: 'Expense Tracker - Dashboard',
+  description: 'Tracking Your Daily Expense.'
 }
 
 const RootLayout = ({ children }: ChildrenType) => {
@@ -22,7 +22,9 @@ const RootLayout = ({ children }: ChildrenType) => {
 
   return (
     <html id='__next' dir={direction}>
-      <body className='flex is-full min-bs-full flex-auto flex-col'>{children}</body>
+      <AuthProvider>
+        <body className='flex is-full min-bs-full flex-auto flex-col'>{children}</body>
+      </AuthProvider>
     </html>
   )
 }

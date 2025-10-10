@@ -1,76 +1,46 @@
-// MUI Imports
-import Grid from '@mui/material/Grid'
+// src/app/(main)/page.tsx
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { headers } from 'next/headers'
 
-// Components Imports
-import Award from '@views/dashboard/Award'
-import Transactions from '@views/dashboard/Transactions'
-import WeeklyOverview from '@views/dashboard/WeeklyOverview'
-import TotalEarning from '@views/dashboard/TotalEarning'
-import LineChart from '@views/dashboard/LineChart'
-import DistributedColumnChart from '@views/dashboard/DistributedColumnChart'
-import DepositWithdraw from '@views/dashboard/DepositWithdraw'
-import SalesByCountries from '@views/dashboard/SalesByCountries'
-import CardStatVertical from '@components/card-statistics/Vertical'
-import Table from '@views/dashboard/Table'
+// Import your existing dashboard view
+import DashboardAnalytics from '@views/dashboard/Analytics'
 
-const DashboardAnalytics = () => {
-  return (
-    <Grid container spacing={6}>
-      <Grid item xs={12} md={4}>
-        <Award />
-      </Grid>
-      <Grid item xs={12} md={8} lg={8}>
-        <Transactions />
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        <WeeklyOverview />
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        <TotalEarning />
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        <Grid container spacing={6}>
-          <Grid item xs={12} sm={6}>
-            <LineChart />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <CardStatVertical
-              title='Total Profit'
-              stats='$25.6k'
-              avatarIcon='ri-pie-chart-2-line'
-              avatarColor='secondary'
-              subtitle='Weekly Profit'
-              trendNumber='42%'
-              trend='positive'
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <CardStatVertical
-              stats='862'
-              trend='negative'
-              trendNumber='18%'
-              title='New Project'
-              subtitle='Yearly Project'
-              avatarColor='primary'
-              avatarIcon='ri-file-word-2-line'
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <DistributedColumnChart />
-          </Grid>
-        </Grid>
-      </Grid>
-      <Grid item xs={12} md={6} lg={4}>
-        <SalesByCountries />
-      </Grid>
-      <Grid item xs={12} lg={8}>
-        <DepositWithdraw />
-      </Grid>
-      <Grid item xs={12}>
-        <Table />
-      </Grid>
-    </Grid>
-  )
+// Define the type for the data we expect from the API
+type SummaryData = {
+  totalIncome: number
+  totalExpense: number
+  netIncome: number
+  totalBalance: number
 }
 
-export default DashboardAnalytics
+async function getSummaryData(): Promise<SummaryData> {
+  // We need to forward the user's cookie to the API route so it knows who is logged in
+  const cookie = headers().get('cookie') ?? ''
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+
+  const res = await fetch(`${baseUrl}/api/summary`, {
+    headers: { cookie }
+  })
+
+  if (!res.ok) {
+    console.error('Failed to fetch summary data')
+    return { totalIncome: 0, totalExpense: 0, netIncome: 0, totalBalance: 0 }
+  }
+
+  return res.json()
+}
+
+const DashboardPage = async () => {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user?.id) {
+    return <p>Please log in.</p>
+  }
+
+  const summaryData = await getSummaryData()
+
+  return <DashboardAnalytics summaryData={summaryData} />
+}
+
+export default DashboardPage

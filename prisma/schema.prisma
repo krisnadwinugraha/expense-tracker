@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  roles      Role[]
+  accounts   Account[]
+  categories Category[]
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  users       User[]
+  permissions Permission[]
+}
+
+model Permission {
+  id      Int    @id @default(autoincrement())
+  action  String
+  subject String
+  roles   Role[]
+  @@unique([action, subject])
+}
+
+model Account {
+  id        String   @id @default(cuid())
+  name      String
+  balance   Float    @default(0.0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  currencyId Int
+  currency  Currency @relation(fields: [currencyId], references: [id])
+  transactions Transaction[]
+}
+
+model Currency {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  description String?  // Added from your list
+  rate        Float?   // Added from your list (optional)
+  accounts    Account[]
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?  // Added from your list
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+  @@unique([name, userId])
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  amount      Float
+  description String?
+  date        DateTime
+  type        TransactionType
+  createdAt   DateTime @default(now())
+  accountId   String
+  account     Account  @relation(fields: [accountId], references: [id])
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
