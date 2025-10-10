@@ -5,13 +5,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
     "build:icons": "tsx src/assets/iconify-icons/bundle-icons-css.ts",
-    "postinstall": "npm run build:icons"
+    "postinstall": "prisma migrate deploy"
   },
   "dependencies": {
     "@emotion/cache": "^11.11.0",

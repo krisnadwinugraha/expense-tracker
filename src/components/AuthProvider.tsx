@@ -1,8 +1,9 @@
-// src/components/AuthProvider.js
-'use client' // This is a crucial directive
+// src/components/AuthProvider.tsx
+'use client'
 
 import { SessionProvider } from 'next-auth/react'
+import type { ReactNode } from 'react'
 
-export default function AuthProvider({ children }) {
+export default function AuthProvider({ children }: { children: ReactNode }) {
   return <SessionProvider>{children}</SessionProvider>
 }
