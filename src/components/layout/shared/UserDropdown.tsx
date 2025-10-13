@@ -100,7 +100,7 @@ const UserDropdown = () => {
           // --- MODIFICATION START ---
           alt={session?.user?.name || 'User Avatar'}
           // --- MODIFICATION END ---
-          src='/images/avatars/1.png'
+          src='/images/logo-black.png'
           onClick={handleDropdownOpen}
           className='cursor-pointer bs-[38px] is-[38px]'
         />
@@ -147,9 +147,7 @@ const UserDropdown = () => {
                       color='error'
                       size='small'
                       endIcon={<i className='ri-logout-box-r-line' />}
-                      // --- MODIFICATION START ---
-                      onClick={handleLogout} // Use the new logout function
-                      // --- MODIFICATION END ---
+                      onClick={handleLogout}
                       sx={{ '& .MuiButton-endIcon': { marginInlineStart: 1.5 } }}
                     >
                       Logout
