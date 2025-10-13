@@ -55,34 +55,22 @@ const Login = ({ mode }: { mode: Mode }) => {
 
   const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
-  // --- MODIFICATION START ---
-  // Replace the old handleSubmit function with this new async version
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setError('') // Clear previous errors
+    setError('')
 
-    try {
-      const result = await signIn('credentials', {
-        redirect: false, // We'll handle success/error manually
-        email: email,
-        password: password
-      })
+    const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl') || '/'
 
-      if (result?.ok) {
-        // If login is successful, redirect to the dashboard
-        router.push('/')
-      } else {
-        // If there's an error, set the error message to display to the user
-        setError('Invalid email or password.')
-        console.error('Login failed:', result?.error)
-      }
-    } catch (error) {
-      console.error('An unexpected error occurred:', error)
-      setError('An unexpected error occurred. Please try again.')
+    const result = await signIn('credentials', {
+      email: email,
+      password: password,
+      callbackUrl: callbackUrl
+    })
+
+    if (result?.error) {
+      setError('Invalid email or password.')
     }
   }
-
-  // --- MODIFICATION END ---
 
   return (
     <div className='flex flex-col justify-center items-center min-bs-[100dvh] relative p-6'>

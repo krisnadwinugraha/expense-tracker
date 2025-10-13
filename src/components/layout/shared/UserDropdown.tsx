@@ -69,19 +69,15 @@ const UserDropdown = () => {
     setOpen(false)
   }
 
-  // --- MODIFICATION START ---
-  // New function to handle logout
   const handleLogout = async () => {
-    setOpen(false) // Close the dropdown
-    await signOut({ callbackUrl: '/login' }) // Sign out and redirect
+    setOpen(false)
+    await signOut({ callbackUrl: '/login' })
   }
 
-  // Handle loading state
   if (status === 'loading') {
     return <Avatar className='bs-[38px] is-[38px]' />
   }
 
-  // If user is not authenticated, show a login button
   if (status === 'unauthenticated') {
     return (
       <Button variant='contained' onClick={() => router.push('/login')} className='mis-2'>
@@ -90,9 +86,6 @@ const UserDropdown = () => {
     )
   }
 
-  // --- MODIFICATION END ---
-
-  // Only render the dropdown if the user is authenticated
   return (
     <>
       <Badge
@@ -104,10 +97,8 @@ const UserDropdown = () => {
       >
         <Avatar
           ref={anchorRef}
-
           // --- MODIFICATION START ---
           alt={session?.user?.name || 'User Avatar'}
-
           // --- MODIFICATION END ---
           src='/images/avatars/1.png'
           onClick={handleDropdownOpen}
@@ -156,7 +147,6 @@ const UserDropdown = () => {
                       color='error'
                       size='small'
                       endIcon={<i className='ri-logout-box-r-line' />}
-
                       // --- MODIFICATION START ---
                       onClick={handleLogout} // Use the new logout function
                       // --- MODIFICATION END ---

@@ -1,10 +1,12 @@
 // middleware.js
-export { default } from 'next-auth/middleware'
+import { withAuth } from 'next-auth/middleware'
 
-// This config specifies which routes should be protected
+export default withAuth({
+  pages: {
+    signIn: '/login'
+  }
+})
+
 export const config = {
-  matcher: [
-    '/', // Protect the homepage/dashboard
-    '/another-protected-route/:path*'
-  ]
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|login|register|.*\\..*).*)']
 }
