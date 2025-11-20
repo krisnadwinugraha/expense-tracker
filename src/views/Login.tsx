@@ -62,8 +62,7 @@ const Login = ({ mode }: { mode: Mode }) => {
       setError('Invalid email or password.')
       setIsSubmitting(false)
     } else if (result?.ok) {
-      router.refresh()
-      router.push('/')
+      window.location.replace('/')
     }
   }
   return (
