@@ -3,13 +3,11 @@
 
 import Grid from '@mui/material/Grid'
 
-import StatCard from './StatCard' // Import our new component
+import StatCard from './StatCard'
 
-// Import any other components from the template you want to keep
-import MonthlyExpensesChart from './MonthlyExpensesChart'
-import DailyExpensesChart from './DailyExpensesChart'
+// import MonthlyExpensesChart from './MonthlyExpensesChart'
+// import DailyExpensesChart from './DailyExpensesChart'
 
-// Define the type for the summary data prop
 type SummaryData = {
   totalIncome: number
   totalExpense: number
@@ -18,12 +16,10 @@ type SummaryData = {
 }
 
 const DashboardAnalytics = ({ summaryData }: { summaryData: SummaryData }) => {
-  // Use a formatter for currency values
   const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' })
 
   return (
     <Grid container spacing={6}>
-      {/* --- Start of Dynamic Stat Cards --- */}
       <Grid item xs={12} sm={6} md={3}>
         <StatCard
           title='Income This Month'

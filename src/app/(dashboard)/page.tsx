@@ -5,10 +5,8 @@ import { getServerSession } from 'next-auth/next'
 
 import { authOptions } from '@/libs/auth'
 
-// Import your existing dashboard view
 import DashboardAnalytics from '@views/dashboard/Analytics'
 
-// Define the type for the data we expect from the API
 type SummaryData = {
   totalIncome: number
   totalExpense: number
@@ -17,7 +15,6 @@ type SummaryData = {
 }
 
 async function getSummaryData(): Promise<SummaryData> {
-  // We need to forward the user's cookie to the API route so it knows who is logged in
   const cookie = headers().get('cookie') ?? ''
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
 

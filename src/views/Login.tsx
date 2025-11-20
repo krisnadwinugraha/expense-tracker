@@ -45,6 +45,10 @@ const Login = ({ mode }: { mode: Mode }) => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!email || !password) {
+      setError('Please enter both email and password.')
+      return
+    }
     setIsSubmitting(true)
     setError('')
 
@@ -58,10 +62,10 @@ const Login = ({ mode }: { mode: Mode }) => {
       setError('Invalid email or password.')
       setIsSubmitting(false)
     } else if (result?.ok) {
+      router.refresh()
       router.push('/')
     }
   }
-
   return (
     <div
       className='flex flex-col justify-center items-center min-bs-[100dvh] relative p-6'
@@ -78,12 +82,20 @@ const Login = ({ mode }: { mode: Mode }) => {
             <Logo />
           </Link>
           <div className='flex flex-col gap-5'>
-            <form noValidate autoComplete='off' onSubmit={handleSubmit} className='flex flex-col gap-5'>
-              <TextField autoFocus fullWidth label='Email' value={email} onChange={e => setEmail(e.target.value)} />
+            <form noValidate onSubmit={handleSubmit} className='flex flex-col gap-5'>
+              <TextField
+                autoFocus
+                autoComplete='username'
+                fullWidth
+                label='Email'
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+              />
               <TextField
                 fullWidth
                 label='Password'
                 type={isPasswordShown ? 'text' : 'password'}
+                autoComplete='current-password'
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 InputProps={{
@@ -101,12 +113,7 @@ const Login = ({ mode }: { mode: Mode }) => {
                   {error}
                 </Typography>
               )}
-              <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'>
-                <FormControlLabel control={<Checkbox />} label='Remember me' />
-                <Typography className='text-end' color='primary' component={Link} href='/forgot-password'>
-                  Forgot password?
-                </Typography>
-              </div>
+              <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'></div>
               <Button fullWidth variant='contained' type='submit' disabled={isSubmitting}>
                 {isSubmitting ? <CircularProgress size={24} color='inherit' /> : 'Log In'}
               </Button>
@@ -116,7 +123,6 @@ const Login = ({ mode }: { mode: Mode }) => {
                   Create an account
                 </Typography>
               </div>
-              {/* No social login buttons by default - if you want them, add them back */}
               <Divider className='gap-3'>Demo</Divider>
               <div className='text-center'>
                 <Typography variant='body2'>
@@ -130,7 +136,6 @@ const Login = ({ mode }: { mode: Mode }) => {
           </div>
         </CardContent>
       </Card>
-      {/* <Illustrations maskImg={{ src: authBackground }} /> */} {/* 👈 REMOVE THIS COMPONENT */}
     </div>
   )
 }
