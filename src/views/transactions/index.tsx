@@ -1,10 +1,8 @@
 // src/views/transactions/index.tsx
 'use client'
 
-import { useState } from 'react'
-
-import { useRouter } from 'next/navigation'
-
+import { useState, useEffect, useTransition } from 'react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import type { Account, Category, Currency, Transaction } from '@prisma/client'
 
 // MUI Imports
@@ -30,9 +28,18 @@ import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
+import Box from '@mui/material/Box'
+import Pagination from '@mui/material/Pagination'
+import CircularProgress from '@mui/material/CircularProgress'
+import Chip from '@mui/material/Chip'
 
-// Define the full type for a transaction with all its relations
-type FullTransaction = Transaction & { category: Category; account: Account & { currency: Currency } }
+// ============================================================
+// TYPE DEFINITIONS
+// ============================================================
+type FullTransaction = Transaction & {
+  category: Category
+  account: Account & { currency: Currency }
+}
 
 type TransactionData = {
   transactions: FullTransaction[]
@@ -40,24 +47,94 @@ type TransactionData = {
   categories: Category[]
 }
 
-const TransactionsView = ({ initialData }: { initialData: TransactionData }) => {
-  const router = useRouter()
+type PaginationData = {
+  currentPage: number
+  pageSize: number
+  totalPages: number
+  totalCount: number
+}
 
-  // --- Dialog and Form State ---
+type Props = {
+  initialData: TransactionData
+  pagination: PaginationData
+}
+
+// ============================================================
+// MAIN COMPONENT
+// ============================================================
+const TransactionsView = ({ initialData, pagination }: Props) => {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
+
+  // ============================================================
+  // 1. FILTER STATE (Synced with URL)
+  // ============================================================
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('query') || '')
+  const [filterCategory, setFilterCategory] = useState(searchParams.get('categoryId') || '')
+
+  // ============================================================
+  // 2. DIALOG AND FORM STATE
+  // ============================================================
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [editingTransaction, setEditingTransaction] = useState<FullTransaction | null>(null)
 
-  // --- Form Field State ---
+  // ============================================================
+  // 3. FORM FIELD STATE
+  // ============================================================
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [type, setType] = useState('EXPENSE')
-  const [accountId, setAccountId] = useState(initialData.accounts[0]?.id || '')
-  const [categoryId, setCategoryId] = useState(String(initialData.categories[0]?.id || ''))
+  const [accountId, setAccountId] = useState('')
+  const [categoryId, setCategoryId] = useState('')
 
-  // --- Dialog Handlers ---
+  // ============================================================
+  // 4. URL PARAMETER MANAGEMENT
+  // ============================================================
+  const updateURLParams = (updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString())
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value)
+      } else {
+        params.delete(key)
+      }
+    })
+
+    // Reset to page 1 when filters change
+    if ('query' in updates || 'categoryId' in updates) {
+      params.set('page', '1')
+    }
+
+    startTransition(() => {
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    })
+  }
+
+  // ============================================================
+  // 5. DEBOUNCED SEARCH
+  // ============================================================
+  useEffect(() => {
+    const currentQuery = searchParams.get('query') || ''
+
+    if (searchTerm === currentQuery) return
+
+    const timeoutId = setTimeout(() => {
+      updateURLParams({ query: searchTerm || null })
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm])
+
+  // ============================================================
+  // 6. DIALOG HANDLERS
+  // ============================================================
   const handleOpenAdd = () => {
     setEditingTransaction(null)
     setAmount('')
@@ -84,73 +161,196 @@ const TransactionsView = ({ initialData }: { initialData: TransactionData }) => 
 
   const handleClose = () => {
     setOpen(false)
+    setError('')
   }
 
-  // --- Form Submission (Create & Update) ---
+  // ============================================================
+  // 7. FORM SUBMISSION
+  // ============================================================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError('')
 
     const url = editingTransaction ? `/api/transactions/${editingTransaction.id}` : '/api/transactions'
-
     const method = editingTransaction ? 'PATCH' : 'POST'
 
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amount: parseFloat(amount),
-        description,
-        date,
-        type,
-        accountId,
-        categoryId: parseInt(categoryId)
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: parseFloat(amount),
+          description,
+          date,
+          type,
+          accountId,
+          categoryId: parseInt(categoryId)
+        })
       })
-    })
 
-    if (res.ok) {
-      router.refresh() // Re-fetches server data and updates the UI
-      handleClose()
-    } else {
-      const data = await res.json()
-
-      setError(data.message || `Failed to ${method === 'POST' ? 'create' : 'update'} transaction.`)
+      if (res.ok) {
+        handleClose()
+        router.refresh()
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setError(data.message || `Failed to ${method === 'POST' ? 'create' : 'update'} transaction`)
+      }
+    } catch (err) {
+      setError('An unexpected error occurred')
+      console.error('[TRANSACTION_SUBMIT_ERROR]', err)
+    } finally {
+      setIsSubmitting(false)
     }
-
-    setIsSubmitting(false)
   }
 
-  // --- Delete Handler ---
+  // ============================================================
+  // 8. DELETE HANDLER
+  // ============================================================
   const handleDelete = async (transactionId: string) => {
-    if (
-      !window.confirm('Are you sure you want to delete this transaction? This will also update the account balance.')
-    ) {
+    if (!window.confirm('Delete this transaction? The account balance will be updated.')) {
       return
     }
 
-    const res = await fetch(`/api/transactions/${transactionId}`, { method: 'DELETE' })
+    try {
+      const res = await fetch(`/api/transactions/${transactionId}`, { method: 'DELETE' })
 
-    if (res.ok) {
-      router.refresh()
-    } else {
-      alert('Failed to delete transaction.')
+      if (res.ok) {
+        router.refresh()
+      } else {
+        alert('Failed to delete transaction')
+      }
+    } catch (err) {
+      console.error('[TRANSACTION_DELETE_ERROR]', err)
+      alert('Failed to delete transaction')
     }
   }
+
+  // ============================================================
+  // 9. PAGINATION HANDLER
+  // ============================================================
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, page: number) => {
+    updateURLParams({ page: String(page) })
+  }
+
+  // ============================================================
+  // 10. FILTER HANDLERS
+  // ============================================================
+  const handleCategoryChange = (value: string) => {
+    setFilterCategory(value)
+    updateURLParams({ categoryId: value || null })
+  }
+
+  const handleResetFilters = () => {
+    setSearchTerm('')
+    setFilterCategory('')
+    startTransition(() => {
+      router.replace(pathname)
+    })
+  }
+
+  // ============================================================
+  // 11. RENDER
+  // ============================================================
+  const hasActiveFilters = searchTerm || filterCategory
+  const isLoading = isPending
 
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
         <Card>
           <CardHeader
-            title='Transactions'
+            title={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography variant='h5'>Transactions</Typography>
+                {isLoading && <CircularProgress size={20} />}
+              </Box>
+            }
             action={
               <Button variant='contained' onClick={handleOpenAdd} startIcon={<i className='ri-add-line' />}>
                 Add Transaction
               </Button>
             }
           />
-          <TableContainer component={Paper}>
+
+          {/* ============================================================
+              FILTER BAR
+          ============================================================ */}
+          <Box
+            sx={{
+              p: 3,
+              display: 'flex',
+              gap: 2,
+              alignItems: 'center',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              flexWrap: 'wrap'
+            }}
+          >
+            <TextField
+              size='small'
+              label='Search'
+              placeholder='Search description...'
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              sx={{ width: { xs: '100%', sm: 250 } }}
+            />
+
+            <FormControl size='small' sx={{ width: { xs: '100%', sm: 200 } }}>
+              <InputLabel>Category</InputLabel>
+              <Select label='Category' value={filterCategory} onChange={e => handleCategoryChange(e.target.value)}>
+                <MenuItem value=''>
+                  <em>All Categories</em>
+                </MenuItem>
+                {initialData.categories.map(cat => (
+                  <MenuItem key={cat.id} value={String(cat.id)}>
+                    {cat.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {hasActiveFilters && (
+              <Button variant='outlined' color='secondary' onClick={handleResetFilters}>
+                Reset Filters
+              </Button>
+            )}
+
+            <Box sx={{ flexGrow: 1 }} />
+
+            {/* Active Filter Chips */}
+            {hasActiveFilters && (
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {searchTerm && (
+                  <Chip label={`Search: "${searchTerm}"`} size='small' onDelete={() => setSearchTerm('')} />
+                )}
+                {filterCategory && (
+                  <Chip
+                    label={`Category: ${
+                      initialData.categories.find(c => String(c.id) === filterCategory)?.name || 'Unknown'
+                    }`}
+                    size='small'
+                    onDelete={() => handleCategoryChange('')}
+                  />
+                )}
+              </Box>
+            )}
+          </Box>
+
+          {/* ============================================================
+              RESULTS COUNT
+          ============================================================ */}
+          <Box sx={{ px: 3, py: 2, bgcolor: 'action.hover' }}>
+            <Typography variant='body2' color='text.secondary'>
+              Showing {initialData.transactions.length} of {pagination.totalCount} transactions
+              {hasActiveFilters && ' (filtered)'}
+            </Typography>
+          </Box>
+
+          {/* ============================================================
+              TABLE
+          ============================================================ */}
+          <TableContainer component={Paper} sx={{ opacity: isLoading ? 0.5 : 1 }}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -163,43 +363,77 @@ const TransactionsView = ({ initialData }: { initialData: TransactionData }) => 
                 </TableRow>
               </TableHead>
               <TableBody>
-                {initialData.transactions.map(tx => (
-                  <TableRow key={tx.id}>
-                    <TableCell>{new Date(tx.date).toLocaleDateString()}</TableCell>
-                    <TableCell>{tx.description || '-'}</TableCell>
-                    <TableCell>{tx.category.name}</TableCell>
-                    <TableCell>{tx.account.name}</TableCell>
-                    <TableCell align='right'>
-                      <Typography color={tx.type === 'EXPENSE' ? 'error' : 'success.main'}>
-                        {new Intl.NumberFormat('id-ID', {
-                          style: 'currency',
-                          currency: tx.account.currency.code
-                        }).format(tx.amount)}
+                {initialData.transactions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align='center' sx={{ py: 8 }}>
+                      <Typography variant='body1' color='text.secondary' gutterBottom>
+                        {hasActiveFilters ? 'No transactions match your filters' : 'No transactions yet'}
                       </Typography>
-                    </TableCell>
-                    <TableCell align='right'>
-                      <IconButton onClick={() => handleOpenEdit(tx)}>
-                        <i className='ri-pencil-line' />
-                      </IconButton>
-                      <IconButton onClick={() => handleDelete(tx.id)}>
-                        <i className='ri-delete-bin-line' />
-                      </IconButton>
+                      {hasActiveFilters && (
+                        <Button variant='text' onClick={handleResetFilters} sx={{ mt: 2 }}>
+                          Clear Filters
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  initialData.transactions.map(tx => (
+                    <TableRow key={tx.id} hover>
+                      <TableCell>{new Date(tx.date).toLocaleDateString('en-GB')}</TableCell>
+                      <TableCell>{tx.description || '-'}</TableCell>
+                      <TableCell>{tx.category.name}</TableCell>
+                      <TableCell>{tx.account.name}</TableCell>
+                      <TableCell align='right'>
+                        <Typography fontWeight='medium' color={tx.type === 'EXPENSE' ? 'error.main' : 'success.main'}>
+                          {tx.type === 'EXPENSE' ? '-' : '+'}
+                          {new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: tx.account.currency.code
+                          }).format(tx.amount)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align='right'>
+                        <IconButton onClick={() => handleOpenEdit(tx)} size='small' color='primary'>
+                          <i className='ri-pencil-line' />
+                        </IconButton>
+                        <IconButton onClick={() => handleDelete(tx.id)} size='small' color='error'>
+                          <i className='ri-delete-bin-line' />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </TableContainer>
+
+          {/* ============================================================
+              PAGINATION
+          ============================================================ */}
+          {pagination.totalPages > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <Pagination
+                count={pagination.totalPages}
+                page={pagination.currentPage}
+                onChange={handlePageChange}
+                color='primary'
+                showFirstButton
+                showLastButton
+                disabled={isLoading}
+              />
+            </Box>
+          )}
         </Card>
       </Grid>
 
-      {/* The Dialog (Modal) for Adding/Editing */}
+      {/* ============================================================
+          DIALOG FORM
+      ============================================================ */}
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth='md'>
         <DialogTitle>{editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}</DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
-            <Grid container spacing={4} className='pt-4'>
-              {/* Form Fields... */}
+            <Grid container spacing={5} className='pt-2'>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -208,21 +442,24 @@ const TransactionsView = ({ initialData }: { initialData: TransactionData }) => 
                   value={amount}
                   onChange={e => setAmount(e.target.value)}
                   required
+                  inputProps={{ step: '0.01', min: '0' }}
                 />
               </Grid>
+
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>Type</InputLabel>
-                  <Select value={type} onChange={e => setType(e.target.value)} label='Type'>
+                  <Select value={type} onChange={e => setType(e.target.value)} label='Type' required>
                     <MenuItem value='EXPENSE'>Expense</MenuItem>
                     <MenuItem value='INCOME'>Income</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
+
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>Account</InputLabel>
-                  <Select value={accountId} onChange={e => setAccountId(e.target.value)} label='Account'>
+                  <Select value={accountId} onChange={e => setAccountId(e.target.value)} label='Account' required>
                     {initialData.accounts.map(acc => (
                       <MenuItem key={acc.id} value={acc.id}>
                         {acc.name}
@@ -231,10 +468,11 @@ const TransactionsView = ({ initialData }: { initialData: TransactionData }) => 
                   </Select>
                 </FormControl>
               </Grid>
+
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>Category</InputLabel>
-                  <Select value={categoryId} onChange={e => setCategoryId(e.target.value)} label='Category'>
+                  <Select value={categoryId} onChange={e => setCategoryId(e.target.value)} label='Category' required>
                     {initialData.categories.map(cat => (
                       <MenuItem key={cat.id} value={String(cat.id)}>
                         {cat.name}
@@ -243,6 +481,7 @@ const TransactionsView = ({ initialData }: { initialData: TransactionData }) => 
                   </Select>
                 </FormControl>
               </Grid>
+
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -251,8 +490,10 @@ const TransactionsView = ({ initialData }: { initialData: TransactionData }) => 
                   value={date}
                   onChange={e => setDate(e.target.value)}
                   InputLabelProps={{ shrink: true }}
+                  required
                 />
               </Grid>
+
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -261,17 +502,22 @@ const TransactionsView = ({ initialData }: { initialData: TransactionData }) => 
                   onChange={e => setDescription(e.target.value)}
                 />
               </Grid>
+
               {error && (
                 <Grid item xs={12}>
-                  <Typography color='error'>{error}</Typography>
+                  <Typography color='error' variant='body2'>
+                    {error}
+                  </Typography>
                 </Grid>
               )}
             </Grid>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
+          <DialogActions sx={{ pb: 3, px: 3 }}>
+            <Button onClick={handleClose} color='secondary' disabled={isSubmitting}>
+              Cancel
+            </Button>
             <Button variant='contained' type='submit' disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Transaction'}
+              {isSubmitting ? 'Saving...' : 'Save'}
             </Button>
           </DialogActions>
         </form>

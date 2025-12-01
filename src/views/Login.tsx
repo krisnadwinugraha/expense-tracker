@@ -18,11 +18,11 @@ import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
-import Checkbox from '@mui/material/Checkbox'
 import Button from '@mui/material/Button'
-import FormControlLabel from '@mui/material/FormControlLabel'
 import Divider from '@mui/material/Divider'
 import CircularProgress from '@mui/material/CircularProgress'
+import Box from '@mui/material/Box'
+import Chip from '@mui/material/Chip'
 
 // Type Imports
 import type { Mode } from '@core/types'
@@ -32,12 +32,45 @@ import Logo from '@components/layout/shared/Logo'
 
 import themeConfig from '@configs/themeConfig'
 
+type DemoAccount = {
+  role: string
+  email: string
+  password: string
+  color: 'primary' | 'secondary' | 'success'
+  description: string
+}
+
+const demoAccounts: DemoAccount[] = [
+  {
+    role: 'Admin',
+    email: 'admin@example.com',
+    password: 'admin123',
+    color: 'primary',
+    description: 'Full access to all features'
+  },
+  {
+    role: 'Manager',
+    email: 'manager@example.com',
+    password: 'manager123',
+    color: 'secondary',
+    description: 'Can view all accounts'
+  },
+  {
+    role: 'User',
+    email: 'user@example.com',
+    password: 'user123',
+    color: 'success',
+    description: 'Basic account access'
+  }
+]
+
 const Login = ({ mode }: { mode: Mode }) => {
   const [isPasswordShown, setIsPasswordShown] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [demoLoading, setDemoLoading] = useState<string | null>(null)
 
   const router = useRouter()
 
@@ -65,6 +98,25 @@ const Login = ({ mode }: { mode: Mode }) => {
       window.location.replace('/')
     }
   }
+
+  const handleDemoLogin = async (account: DemoAccount) => {
+    setDemoLoading(account.role)
+    setError('')
+
+    const result = await signIn('credentials', {
+      redirect: false,
+      email: account.email,
+      password: account.password
+    })
+
+    if (result?.error) {
+      setError('Demo login failed. Please try again.')
+      setDemoLoading(null)
+    } else if (result?.ok) {
+      window.location.replace('/')
+    }
+  }
+
   return (
     <div
       className='flex flex-col justify-center items-center min-bs-[100dvh] relative p-6'
@@ -81,14 +133,47 @@ const Login = ({ mode }: { mode: Mode }) => {
             <Logo />
           </Link>
           <div className='flex flex-col gap-5'>
+            {/* Demo Account Section */}
+            <div className='flex flex-col gap-3'>
+              <Typography variant='body2' className='text-center text-gray-600'>
+                Quick Demo Access
+              </Typography>
+              <Box className='flex flex-col gap-2'>
+                {demoAccounts.map(account => (
+                  <Button
+                    key={account.role}
+                    variant='outlined'
+                    color={account.color}
+                    fullWidth
+                    onClick={() => handleDemoLogin(account)}
+                    disabled={isSubmitting || demoLoading !== null}
+                    className='justify-between'
+                  >
+                    <span className='flex items-center gap-2'>
+                      {demoLoading === account.role ? (
+                        <CircularProgress size={16} color='inherit' />
+                      ) : (
+                        <i className='ri-user-line' />
+                      )}
+                      <span>Demo as {account.role}</span>
+                    </span>
+                    <Chip label={account.description} size='small' variant='outlined' className='text-xs' />
+                  </Button>
+                ))}
+              </Box>
+            </div>
+
+            <Divider>OR</Divider>
+
+            {/* Regular Login Form */}
             <form noValidate onSubmit={handleSubmit} className='flex flex-col gap-5'>
               <TextField
-                autoFocus
                 autoComplete='username'
                 fullWidth
                 label='Email'
                 value={email}
                 onChange={e => setEmail(e.target.value)}
+                disabled={isSubmitting || demoLoading !== null}
               />
               <TextField
                 fullWidth
@@ -97,6 +182,7 @@ const Login = ({ mode }: { mode: Mode }) => {
                 autoComplete='current-password'
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                disabled={isSubmitting || demoLoading !== null}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position='end'>
@@ -112,23 +198,13 @@ const Login = ({ mode }: { mode: Mode }) => {
                   {error}
                 </Typography>
               )}
-              <div className='flex justify-between items-center gap-x-3 gap-y-1 flex-wrap'></div>
-              <Button fullWidth variant='contained' type='submit' disabled={isSubmitting}>
+              <Button fullWidth variant='contained' type='submit' disabled={isSubmitting || demoLoading !== null}>
                 {isSubmitting ? <CircularProgress size={24} color='inherit' /> : 'Log In'}
               </Button>
               <div className='flex justify-center items-center flex-wrap gap-2'>
-                <Typography>Don't have an account yet?</Typography>
-                <Typography component={Link} href='/register' color='primary'>
+                <Typography variant='body2'>Don't have an account yet?</Typography>
+                <Typography component={Link} href='/register' color='primary' variant='body2'>
                   Create an account
-                </Typography>
-              </div>
-              <Divider className='gap-3'>Demo</Divider>
-              <div className='text-center'>
-                <Typography variant='body2'>
-                  Email: <span className='font-medium'>admin@gmail.com</span>
-                </Typography>
-                <Typography variant='body2'>
-                  Password: <span className='font-medium'>123456</span>
                 </Typography>
               </div>
             </form>

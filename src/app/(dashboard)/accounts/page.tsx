@@ -1,35 +1,39 @@
 // src/app/(main)/accounts/page.tsx
-import { getServerSession } from 'next-auth/next'
-
 import { PrismaClient } from '@prisma/client'
-
-import { authOptions } from '@/libs/auth'
+import { requireAuth, requirePermission, hasPermission } from '@/libs/authUtils'
 import AccountsView from '@views/accounts'
 
 const prisma = new PrismaClient()
 
-async function getAccountData(userId: string) {
+async function getAccountData(userId: string, canViewAll: boolean) {
+  // If user has permission to view all accounts, return all
+  // Otherwise, return only their own accounts
   const accounts = await prisma.account.findMany({
-    where: { userId },
-    include: { currency: true },
+    where: canViewAll ? {} : { userId },
+    include: {
+      currency: true,
+      user: canViewAll ? true : false // Include user info if viewing all
+    },
     orderBy: { name: 'asc' }
   })
 
-  const currencies = await prisma.currency.findMany({ orderBy: { name: 'asc' } })
+  const currencies = await prisma.currency.findMany({
+    orderBy: { name: 'asc' }
+  })
 
   return { accounts, currencies }
 }
 
 const AccountsPage = async () => {
-  const session = await getServerSession(authOptions)
+  // Require authentication
+  const session = await requireAuth()
 
-  if (!session?.user?.id) {
-    return <p>Please log in.</p>
-  }
+  // Check if user has permission to view all accounts
+  const canViewAll = hasPermission(session.user.roles, 'read', 'all-accounts')
 
-  const accountData = await getAccountData(session.user.id)
+  const accountData = await getAccountData(session.user.id, canViewAll)
 
-  return <AccountsView initialData={accountData} />
+  return <AccountsView initialData={accountData} userRole={session.user.roles} />
 }
 
 export default AccountsPage
