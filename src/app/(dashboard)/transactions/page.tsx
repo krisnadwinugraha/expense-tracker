@@ -6,6 +6,7 @@ import prisma from '@/libs/prisma'
 import { Prisma } from '@prisma/client'
 import TransactionsView from '@/views/transactions'
 
+// 1. Force dynamic rendering so search params always work
 export const dynamic = 'force-dynamic'
 
 type PageProps = {
@@ -23,13 +24,14 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
   // 1. PARSE AND VALIDATE QUERY PARAMETERS
   // ============================================================
   const query = typeof searchParams.query === 'string' ? searchParams.query.trim() : ''
-  const categoryIdParam = typeof searchParams.categoryId === 'string' ? searchParams.categoryId : ''
-  const categoryId = categoryIdParam ? parseInt(categoryIdParam, 10) : undefined
 
+  // FIX: Do not use parseInt for String/CUID IDs
+  const categoryId = typeof searchParams.categoryId === 'string' ? searchParams.categoryId : undefined
+
+  // Pagination Logic
   const pageParam = typeof searchParams.page === 'string' ? searchParams.page : '1'
   const page = Math.max(1, parseInt(pageParam, 10) || 1)
-  const pageSize = 20 // Configurable page size
-
+  const pageSize = 20
   const skip = (page - 1) * pageSize
 
   // ============================================================
@@ -39,23 +41,25 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
     account: {
       userId: session.user.id
     },
+    // Search by description (if query exists)
     ...(query && {
       description: {
         contains: query,
         mode: 'insensitive'
       }
     }),
-    ...(categoryId &&
-      !isNaN(categoryId) && {
-        categoryId: categoryId
-      })
+    // Filter by Category (if selected)
+    ...(categoryId && {
+      categoryId: categoryId
+    })
   }
 
   // ============================================================
-  // 3. FETCH DATA WITH ERROR HANDLING
+  // 3. FETCH DATA
   // ============================================================
   try {
     const [transactions, totalCount, accounts, categories] = await Promise.all([
+      // A. Get Paginated Transactions
       prisma.transaction.findMany({
         where: whereCondition,
         include: {
@@ -68,9 +72,13 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
         skip,
         take: pageSize
       }),
+
+      // B. Get Total Count (for pagination UI)
       prisma.transaction.count({
         where: whereCondition
       }),
+
+      // C. Get Filters Data
       prisma.account.findMany({
         where: { userId: session.user.id },
         orderBy: { name: 'asc' }
@@ -99,12 +107,10 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
     )
   } catch (error) {
     console.error('[TRANSACTIONS_PAGE_ERROR]', error)
-
-    // You can create a proper error page component here
     return (
-      <div style={{ padding: '2rem', textAlign: 'center' }}>
-        <h2>Failed to load transactions</h2>
-        <p>Please try refreshing the page</p>
+      <div className='p-5 text-center'>
+        <h2 className='text-xl font-bold text-red-500'>Failed to load transactions</h2>
+        <p>Please try refreshing the page.</p>
       </div>
     )
   }
