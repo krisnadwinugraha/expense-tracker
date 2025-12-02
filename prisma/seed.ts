@@ -1,8 +1,27 @@
 // prisma/seed.ts
+import dotenv from 'dotenv'
+import path from 'path'
+
+// Load environment variables FIRST, before any other imports
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
+dotenv.config({ path: path.resolve(process.cwd(), '.env') })
+
+// Now import Prisma and other dependencies
 import { PrismaClient } from '@prisma/client'
 import { hash } from 'bcryptjs'
+import { Pool } from 'pg'
+import { PrismaPg } from '@prisma/adapter-pg'
 
-import prisma from '@/libs/prisma'
+// Create Prisma client directly in seed file instead of importing
+const connectionString = process.env.DATABASE_URL
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL is not defined in environment variables')
+}
+
+const pool = new Pool({ connectionString })
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   console.log('🌱 Starting seed...')
@@ -328,7 +347,7 @@ async function main() {
     data: [
       // Income
       {
-        userId: adminUser.id, // Added userId
+        userId: adminUser.id,
         accountId: adminChecking.id,
         categoryId: adminIncomeCategory!.id,
         amount: 5000,
@@ -337,7 +356,7 @@ async function main() {
         date: getDate(30)
       },
       {
-        userId: adminUser.id, // Added userId
+        userId: adminUser.id,
         accountId: adminChecking.id,
         categoryId: adminIncomeCategory!.id,
         amount: 5000,
@@ -348,7 +367,7 @@ async function main() {
 
       // Expenses
       {
-        userId: adminUser.id, // Added userId
+        userId: adminUser.id,
         accountId: adminChecking.id,
         categoryId: adminFoodCategory!.id,
         amount: -45.5,
@@ -357,7 +376,7 @@ async function main() {
         date: getDate(2)
       },
       {
-        userId: adminUser.id, // Added userId
+        userId: adminUser.id,
         accountId: adminChecking.id,
         categoryId: adminFoodCategory!.id,
         amount: -28.75,
@@ -366,7 +385,7 @@ async function main() {
         date: getDate(5)
       },
       {
-        userId: adminUser.id, // Added userId
+        userId: adminUser.id,
         accountId: adminChecking.id,
         categoryId: adminTransportCategory!.id,
         amount: -60,
@@ -375,7 +394,7 @@ async function main() {
         date: getDate(7)
       },
       {
-        userId: adminUser.id, // Added userId
+        userId: adminUser.id,
         accountId: adminCredit.id,
         categoryId: adminShoppingCategory!.id,
         amount: -150,
@@ -384,7 +403,7 @@ async function main() {
         date: getDate(10)
       },
       {
-        userId: adminUser.id, // Added userId
+        userId: adminUser.id,
         accountId: adminChecking.id,
         categoryId: adminFoodCategory!.id,
         amount: -32.5,
@@ -393,7 +412,7 @@ async function main() {
         date: getDate(15)
       },
       {
-        userId: adminUser.id, // Added userId
+        userId: adminUser.id,
         accountId: adminChecking.id,
         categoryId: adminTransportCategory!.id,
         amount: -50,
@@ -412,7 +431,7 @@ async function main() {
   await prisma.transaction.createMany({
     data: [
       {
-        userId: managerUser.id, // Added userId
+        userId: managerUser.id,
         accountId: managerChecking.id,
         categoryId: managerIncomeCategory!.id,
         amount: 12000000,
@@ -421,7 +440,7 @@ async function main() {
         date: getDate(25)
       },
       {
-        userId: managerUser.id, // Added userId
+        userId: managerUser.id,
         accountId: managerChecking.id,
         categoryId: managerFoodCategory!.id,
         amount: -150000,
@@ -430,7 +449,7 @@ async function main() {
         date: getDate(3)
       },
       {
-        userId: managerUser.id, // Added userId
+        userId: managerUser.id,
         accountId: managerChecking.id,
         categoryId: managerTransportCategory!.id,
         amount: -200000,
@@ -439,7 +458,7 @@ async function main() {
         date: getDate(8)
       },
       {
-        userId: managerUser.id, // Added userId
+        userId: managerUser.id,
         accountId: managerChecking.id,
         categoryId: managerFoodCategory!.id,
         amount: -85000,
@@ -458,7 +477,7 @@ async function main() {
   await prisma.transaction.createMany({
     data: [
       {
-        userId: regularUser.id, // Added userId
+        userId: regularUser.id,
         accountId: userChecking.id,
         categoryId: userIncomeCategory!.id,
         amount: 3500,
@@ -467,7 +486,7 @@ async function main() {
         date: getDate(28)
       },
       {
-        userId: regularUser.id, // Added userId
+        userId: regularUser.id,
         accountId: userChecking.id,
         categoryId: userFoodCategory!.id,
         amount: -25,
@@ -476,7 +495,7 @@ async function main() {
         date: getDate(1)
       },
       {
-        userId: regularUser.id, // Added userId
+        userId: regularUser.id,
         accountId: userChecking.id,
         categoryId: userShoppingCategory!.id,
         amount: -75,
@@ -485,7 +504,7 @@ async function main() {
         date: getDate(6)
       },
       {
-        userId: regularUser.id, // Added userId
+        userId: regularUser.id,
         accountId: userChecking.id,
         categoryId: userFoodCategory!.id,
         amount: -40,
@@ -524,4 +543,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect()
+    await pool.end()
   })
