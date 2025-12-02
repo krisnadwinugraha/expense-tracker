@@ -7,7 +7,7 @@ import { getServerSession } from 'next-auth/next'
 
 import { authOptions } from '@/libs/auth'
 
-const prisma = new PrismaClient()
+import prisma from '@/libs/prisma'
 
 // GET: Fetch all accounts for the logged-in user
 export async function GET() {

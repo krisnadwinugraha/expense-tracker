@@ -6,7 +6,7 @@ import { getServerSession } from 'next-auth/next'
 
 import { authOptions } from '@/libs/auth'
 
-const prisma = new PrismaClient()
+import prisma from '@/libs/prisma'
 
 export async function PATCH(req: Request, { params }: { params: { categoryId: string } }) {
   const session = await getServerSession(authOptions)
@@ -25,7 +25,7 @@ export async function PATCH(req: Request, { params }: { params: { categoryId: st
 
     const categoryToUpdate = await prisma.category.findFirst({
       where: {
-        id: parseInt(params.categoryId),
+        id: String(params.categoryId),
         userId: session.user.id
       }
     })
@@ -36,7 +36,7 @@ export async function PATCH(req: Request, { params }: { params: { categoryId: st
 
     const updatedCategory = await prisma.category.update({
       where: {
-        id: parseInt(params.categoryId)
+        id: String(params.categoryId)
       },
       data: {
         name,
@@ -63,7 +63,7 @@ export async function DELETE(req: Request, { params }: { params: { categoryId: s
   try {
     const categoryToDelete = await prisma.category.findFirst({
       where: {
-        id: parseInt(params.categoryId),
+        id: String(params.categoryId),
         userId: session.user.id
       }
     })
@@ -74,7 +74,7 @@ export async function DELETE(req: Request, { params }: { params: { categoryId: s
 
     await prisma.category.delete({
       where: {
-        id: parseInt(params.categoryId)
+        id: String(params.categoryId)
       }
     })
 

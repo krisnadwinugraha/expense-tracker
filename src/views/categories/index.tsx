@@ -130,7 +130,6 @@ const CategoriesView = () => {
           <CardHeader
             title='Transaction Categories'
             subheader='Manage your custom categories for income and expenses.'
-
             // The "Add New" button is in the header
             action={
               <Button variant='contained' onClick={handleOpenAdd} startIcon={<i className='ri-add-line' />}>
@@ -158,7 +157,7 @@ const CategoriesView = () => {
                       <IconButton onClick={() => handleOpenEdit(category)}>
                         <i className='ri-pencil-line' />
                       </IconButton>
-                      <IconButton onClick={() => handleDelete(category.id)}>
+                      <IconButton onClick={() => handleDelete(Number(category.id))}>
                         <i className='ri-delete-bin-line' />
                       </IconButton>
                     </TableCell>

@@ -6,7 +6,7 @@ import { getServerSession } from 'next-auth/next'
 
 import { authOptions } from '@/libs/auth'
 
-const prisma = new PrismaClient()
+import prisma from '@/libs/prisma'
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions)
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
         by: ['date'],
         where: {
           account: { userId: session.user.id },
-          type: TransactionType.EXPENSE,
+          type: TransactionType.expense,
           date: { gte: yearStart, lte: yearEnd }
         },
         _sum: { amount: true }
@@ -59,7 +59,7 @@ export async function GET(req: Request) {
       const dailyExpenses = await prisma.transaction.findMany({
         where: {
           account: { userId: session.user.id },
-          type: TransactionType.EXPENSE,
+          type: TransactionType.expense,
           date: { gte: monthStart, lte: monthEnd }
         },
         select: { date: true, amount: true }

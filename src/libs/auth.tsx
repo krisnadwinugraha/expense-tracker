@@ -1,10 +1,8 @@
-// src/libs/auth.ts
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { PrismaClient } from '@prisma/client'
 import { compare } from 'bcryptjs'
 
-const prisma = new PrismaClient()
+import prisma from '../libs/prisma'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -19,6 +17,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email and password required')
         }
 
+        // Now this uses the correct adapter/pool connection
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
           include: {

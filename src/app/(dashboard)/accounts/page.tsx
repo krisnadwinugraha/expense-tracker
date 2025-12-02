@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import { requireAuth, requirePermission, hasPermission } from '@/libs/authUtils'
 import AccountsView from '@views/accounts'
 
-const prisma = new PrismaClient()
+import prisma from '@/libs/prisma'
 
 async function getAccountData(userId: string, canViewAll: boolean) {
   // If user has permission to view all accounts, return all

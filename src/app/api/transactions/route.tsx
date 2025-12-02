@@ -1,10 +1,8 @@
-// src/app/api/transactions/route.ts
 import { NextResponse } from 'next/server'
-import { PrismaClient, TransactionType } from '@prisma/client'
+import { PrismaClient, TransactionType } from '@prisma/client' // Ensure TransactionType is imported
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/libs/auth'
-
-const prisma = new PrismaClient()
+import prisma from '@/libs/prisma'
 
 // ============================================================
 // POST: Create a new transaction and update account balance
@@ -20,22 +18,24 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { amount, description, date, type, accountId, categoryId } = body
 
-    // Validate required fields
+    // 1. Validation ----------------------------------------
     if (!amount || !date || !type || !accountId || !categoryId) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 })
     }
 
-    // Validate amount is positive
-    if (amount <= 0) {
+    // Ensure amount is actually a number (req.json parsers might verify, but safe to cast)
+    const amountFloat = parseFloat(amount)
+    if (isNaN(amountFloat) || amountFloat <= 0) {
       return NextResponse.json({ message: 'Amount must be greater than 0' }, { status: 400 })
     }
 
-    // Validate transaction type
-    if (!['EXPENSE', 'INCOME'].includes(type)) {
+    // Validate transaction type against the Prisma Enum
+    // This assumes your Enum is named 'TransactionType' in schema.prisma
+    if (!Object.values(TransactionType).includes(type as TransactionType)) {
       return NextResponse.json({ message: 'Invalid transaction type' }, { status: 400 })
     }
 
-    // Verify account belongs to user
+    // 2. Ownership Verification ----------------------------
     const account = await prisma.account.findFirst({
       where: {
         id: accountId,
@@ -47,7 +47,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Account not found or unauthorized' }, { status: 404 })
     }
 
-    // Verify category exists
     const category = await prisma.category.findUnique({
       where: { id: categoryId }
     })
@@ -56,16 +55,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'Category not found' }, { status: 404 })
     }
 
-    // Atomic Transaction: Create Record + Update Balance
+    // 3. Database Action -----------------------------------
+    // We cast `type` to the Enum to satisfy TypeScript
+    const typeEnum = type as TransactionType
+
     const [newTransaction] = await prisma.$transaction([
       prisma.transaction.create({
         data: {
-          amount,
+          amount: amountFloat,
           description: description || null,
           date: new Date(date),
-          type,
+          type: typeEnum,
           accountId,
-          categoryId
+          categoryId,
+          userId: session.user.id
         },
         include: {
           category: true,
@@ -78,7 +81,8 @@ export async function POST(req: Request) {
         where: { id: accountId },
         data: {
           balance: {
-            [type === TransactionType.EXPENSE ? 'decrement' : 'increment']: amount
+            // Use the strictly typed Enum for comparison
+            [typeEnum === TransactionType.expense ? 'decrement' : 'increment']: amountFloat
           }
         }
       })

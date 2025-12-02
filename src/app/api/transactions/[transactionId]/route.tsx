@@ -4,7 +4,7 @@ import { PrismaClient, TransactionType } from '@prisma/client'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/libs/auth'
 
-const prisma = new PrismaClient()
+import prisma from '@/libs/prisma'
 
 // ============================================================
 // PATCH: Update a specific transaction and adjust account balance
@@ -78,10 +78,10 @@ export async function PATCH(req: Request, { params }: { params: { transactionId:
 
     // 1. Calculate effect of original transaction
     const originalEffect =
-      originalTransaction.type === TransactionType.EXPENSE ? -originalTransaction.amount : originalTransaction.amount
+      originalTransaction.type === TransactionType.expense ? -originalTransaction.amount : originalTransaction.amount
 
     // 2. Calculate effect of new transaction
-    const newEffect = type === TransactionType.EXPENSE ? -amount : amount
+    const newEffect = type === TransactionType.expense ? -amount : amount
 
     // 3. Net change for the account
     const balanceChange = newEffect - originalEffect
@@ -188,7 +188,7 @@ export async function DELETE(req: Request, { params }: { params: { transactionId
 
     // Calculate balance adjustment (reverse the transaction)
     const balanceAdjustment =
-      transactionToDelete.type === TransactionType.EXPENSE
+      transactionToDelete.type === TransactionType.expense
         ? transactionToDelete.amount // Deleting expense adds money back
         : -transactionToDelete.amount // Deleting income removes money
 

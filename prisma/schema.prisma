@@ -11,17 +11,22 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" 
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  // url      = env("DATABASE_URL")
+}
+
+enum TransactionType {
+  income
+  expense
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
+  id        String   @id @default(cuid())
+  email     String   @unique
   name      String?
   password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   roles        Role[]
   accounts     Account[]
@@ -49,7 +54,9 @@ model Currency {
   id       Int       @id @default(autoincrement())
   code     String    @unique
   name     String
-  symbol   String
+  symbol   String?
+  description String?
+  rate String?
   accounts Account[]
 }
 
@@ -67,29 +74,30 @@ model Account {
 }
 
 model Category {
-  id           String        @id @default(cuid())
-  name         String
-  type         String // 'income' or 'expense'
-  icon         String?
-  userId       String
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  name        String
+  type        String?      
+  icon        String?
+  userId      String
+  description String?
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   transactions Transaction[]
 }
 
 model Transaction {
-  id          String   @id @default(cuid())
+  id          String          @id @default(cuid())
   amount      Float
-  type        String // 'income' or 'expense'
+  type        TransactionType 
   description String?
-  date        DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  date        DateTime        @default(now())
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   accountId   String
-  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  account     Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
   categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
+  category    Category        @relation(fields: [categoryId], references: [id])
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

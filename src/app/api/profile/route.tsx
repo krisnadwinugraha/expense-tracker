@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs'
 
 import { authOptions } from '@/libs/auth'
 
-const prisma = new PrismaClient()
+import prisma from '@/libs/prisma'
 
 // GET: Fetch the current user's profile
 export async function GET() {

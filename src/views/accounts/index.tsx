@@ -1,11 +1,9 @@
-// src/views/accounts/index.tsx
 'use client'
 
 import { useState } from 'react'
-
 import { useRouter } from 'next/navigation'
 
-import type { Currency, Account } from '@prisma/client'
+import type { Currency, Account, Role } from '@prisma/client'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -40,7 +38,14 @@ type AccountData = {
   currencies: Currency[]
 }
 
-const AccountsView = ({ initialData }: { initialData: AccountData }) => {
+// 2. Define the Props interface including userRole
+type Props = {
+  initialData: AccountData
+  userRole: Role[]
+}
+
+// 3. Destructure userRole from props
+const AccountsView = ({ initialData, userRole }: Props) => {
   const router = useRouter()
 
   // Dialog (Modal) and Form State
@@ -51,7 +56,7 @@ const AccountsView = ({ initialData }: { initialData: AccountData }) => {
 
   // Form Field State
   const [name, setName] = useState('')
-  const [currencyId, setCurrencyId] = useState(initialData.currencies[0]?.id || '')
+  const [currencyId, setCurrencyId] = useState<string | number>(initialData.currencies[0]?.id || '')
 
   // --- Dialog Handlers ---
   const handleOpenAdd = () => {
@@ -81,7 +86,6 @@ const AccountsView = ({ initialData }: { initialData: AccountData }) => {
     setError('')
 
     const url = editingAccount ? `/api/accounts/${editingAccount.id}` : '/api/accounts'
-
     const method = editingAccount ? 'PATCH' : 'POST'
 
     const res = await fetch(url, {
@@ -95,7 +99,6 @@ const AccountsView = ({ initialData }: { initialData: AccountData }) => {
       handleClose()
     } else {
       const data = await res.json()
-
       setError(data.message || `Failed to ${method === 'POST' ? 'create' : 'update'} account.`)
     }
 

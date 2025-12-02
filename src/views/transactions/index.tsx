@@ -384,8 +384,8 @@ const TransactionsView = ({ initialData, pagination }: Props) => {
                       <TableCell>{tx.category.name}</TableCell>
                       <TableCell>{tx.account.name}</TableCell>
                       <TableCell align='right'>
-                        <Typography fontWeight='medium' color={tx.type === 'EXPENSE' ? 'error.main' : 'success.main'}>
-                          {tx.type === 'EXPENSE' ? '-' : '+'}
+                        <Typography fontWeight='medium' color={tx.type === 'expense' ? 'error.main' : 'success.main'}>
+                          {tx.type === 'expense' ? '-' : '+'}
                           {new Intl.NumberFormat('id-ID', {
                             style: 'currency',
                             currency: tx.account.currency.code

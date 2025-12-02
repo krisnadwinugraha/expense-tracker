@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient()
+import prisma from '@/libs/prisma'
 
 // PATCH: Update a specific currency
 export async function PATCH(req: Request, { params }: { params: { currencyId: string } }) {
@@ -23,8 +23,8 @@ export async function PATCH(req: Request, { params }: { params: { currencyId: st
     return NextResponse.json(updatedCurrency)
   } catch (error) {
     console.error('[CURRENCY_PATCH]', error)
-    
-return new NextResponse('Internal Error', { status: 500 })
+
+    return new NextResponse('Internal Error', { status: 500 })
   }
 }
 
@@ -47,7 +47,7 @@ export async function DELETE(req: Request, { params }: { params: { currencyId: s
     return new NextResponse(null, { status: 204 })
   } catch (error) {
     console.error('[CURRENCY_DELETE]', error)
-    
-return new NextResponse('Internal Error', { status: 500 })
+
+    return new NextResponse('Internal Error', { status: 500 })
   }
 }

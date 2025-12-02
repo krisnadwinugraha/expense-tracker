@@ -6,7 +6,7 @@ import { getServerSession } from 'next-auth/next'
 
 import { authOptions } from '@/libs/auth'
 
-const prisma = new PrismaClient()
+import prisma from '@/libs/prisma'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -35,8 +35,8 @@ export async function GET() {
       }
     })
 
-    const totalIncome = monthlySummary.find(s => s.type === 'INCOME')?._sum.amount || 0
-    const totalExpense = monthlySummary.find(s => s.type === 'EXPENSE')?._sum.amount || 0
+    const totalIncome = monthlySummary.find(s => s.type === 'income')?._sum.amount || 0
+    const totalExpense = monthlySummary.find(s => s.type === 'expense')?._sum.amount || 0
 
     // Calculate total balance across all accounts
     const totalBalance = await prisma.account.aggregate({

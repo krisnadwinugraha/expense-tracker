@@ -6,7 +6,7 @@ import { getServerSession } from 'next-auth/next'
 
 import { authOptions } from '@/libs/auth' // Adjust path
 
-const prisma = new PrismaClient()
+import prisma from '@/libs/prisma'
 
 // PATCH: Update a specific account
 export async function PATCH(req: Request, { params }: { params: { accountId: string } }) {

@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient()
+import prisma from '@/libs/prisma'
 
 // GET: Fetch all currencies
 export async function GET() {
@@ -12,12 +12,11 @@ export async function GET() {
       orderBy: { name: 'asc' }
     })
 
-    
-return NextResponse.json(currencies)
+    return NextResponse.json(currencies)
   } catch (error) {
     console.error('[CURRENCIES_GET]', error)
-    
-return new NextResponse('Internal Error', { status: 500 })
+
+    return new NextResponse('Internal Error', { status: 500 })
   }
 }
 
@@ -25,7 +24,7 @@ return new NextResponse('Internal Error', { status: 500 })
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { code, name, description, rate } = body
+    const { code, name, symbol, description, rate } = body
 
     if (!code || !name) {
       return new NextResponse('Code and Name are required', { status: 400 })
@@ -35,6 +34,7 @@ export async function POST(req: Request) {
       data: {
         code,
         name,
+        symbol,
         description,
         rate
       }
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     return NextResponse.json(currency)
   } catch (error) {
     console.error('[CURRENCIES_POST]', error)
-    
-return new NextResponse('Internal Error', { status: 500 })
+
+    return new NextResponse('Internal Error', { status: 500 })
   }
 }
