@@ -54,13 +54,12 @@ export default function TransactionForm({
       setAccountId(transaction.accountId)
       setCategoryId(String(transaction.categoryId))
     } else {
-      // Reset to defaults for new transaction
       setAmount('')
       setDescription('')
       setDate(new Date().toISOString().split('T')[0])
       setType('expense')
-      setAccountId(accounts[0]?.id || '')
-      setCategoryId(String(categories[0]?.id || ''))
+      setAccountId(accounts?.[0]?.id || '')
+      setCategoryId(categories?.[0]?.id ? String(categories[0].id) : '')
     }
     setError('')
   }, [transaction, accounts, categories])
@@ -69,27 +68,29 @@ export default function TransactionForm({
     e.preventDefault()
     setError('')
 
-    // Validation
     const amountNum = parseFloat(amount)
-    if (isNaN(amountNum) || amountNum <= 0) {
-      setError('Amount must be greater than 0')
+    console.log(accountId)
+    console.log(categoryId)
+    // 1. Validation: Ensure we don't send empty data
+    if (!categoryId) {
+      setError('Please select a category')
       return
     }
 
-    const formData: TransactionFormData = {
+    const payload = {
       amount: amountNum,
       description: description || undefined,
-      date,
-      type,
-      accountId,
-      categoryId
+      date: new Date(date).toISOString(),
+      type: type,
+      accountId: accountId,
+      categoryId: categoryId
     }
 
     let result
     if (isEditing) {
-      result = await updateTransaction(transaction.id, formData)
+      result = await updateTransaction(transaction.id, payload)
     } else {
-      result = await createTransaction(formData)
+      result = await createTransaction(payload)
     }
 
     if (result.success) {
@@ -126,8 +127,9 @@ export default function TransactionForm({
               required
               disabled={isLoading}
             >
-              <MenuItem value='EXPENSE'>Expense</MenuItem>
-              <MenuItem value='INCOME'>Income</MenuItem>
+              {/* VALUES MUST BE LOWERCASE to match z.nativeEnum(TransactionType) */}
+              <MenuItem value='expense'>Expense</MenuItem>
+              <MenuItem value='income'>Income</MenuItem>
             </Select>
           </FormControl>
         </Grid>
@@ -155,11 +157,11 @@ export default function TransactionForm({
           <FormControl fullWidth>
             <InputLabel>Category</InputLabel>
             <Select
+              name='categoryId'
               value={categoryId}
               onChange={e => setCategoryId(e.target.value)}
               label='Category'
               required
-              disabled={isLoading}
             >
               {categories.map(cat => (
                 <MenuItem key={cat.id} value={String(cat.id)}>

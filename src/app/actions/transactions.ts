@@ -1,4 +1,3 @@
-// src/app/actions/transactions.ts
 'use server'
 
 import { revalidatePath } from 'next/cache'
@@ -7,28 +6,17 @@ import { authOptions } from '@/libs/auth'
 import { TransactionService } from '@/services/transaction.service'
 import { transactionSchema } from '@/libs/validations/transaction'
 
-export async function createTransaction(formData: FormData) {
+export async function createTransaction(data: any) {
   const session = await getServerSession(authOptions)
+  if (!session?.user?.id) return { error: 'Unauthenticated' }
 
-  if (!session?.user?.id) {
-    return { error: 'Unauthenticated' }
-  }
-
-  const rawData = {
-    amount: parseFloat(formData.get('amount') as string),
-    description: formData.get('description') as string,
-    date: formData.get('date') as string,
-    type: formData.get('type') as string,
-    accountId: formData.get('accountId') as string,
-    categoryId: formData.get('categoryId') as string
-  }
-
-  const validationResult = transactionSchema.safeParse(rawData)
+  const validationResult = transactionSchema.safeParse(data)
 
   if (!validationResult.success) {
+    console.error('Validation Errors:', validationResult.error.flatten())
     return {
       error: 'Validation failed',
-      details: validationResult.error.flatten()
+      errors: validationResult.error.flatten()
     }
   }
 
@@ -41,7 +29,6 @@ export async function createTransaction(formData: FormData) {
     revalidatePath('/transactions')
     return { success: true, data: transaction }
   } catch (error: any) {
-    console.error('[CREATE_TRANSACTION_ACTION]', error)
-    return { error: error.message || 'Failed to create transaction' }
+    return { error: error.message }
   }
 }

@@ -30,8 +30,7 @@ export function useCreateTransaction() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...data,
-          categoryId: parseInt(data.categoryId)
+          ...data
         })
       })
 
@@ -69,8 +68,7 @@ export function useUpdateTransaction() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...data,
-          categoryId: parseInt(data.categoryId)
+          ...data
         })
       })
 

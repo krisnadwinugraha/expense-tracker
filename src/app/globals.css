@@ -14,6 +14,10 @@
   --search-z-index: var(--mui-zIndex-tooltip);
   --drawer-z-index: var(--mui-zIndex-drawer);
   --backdrop-color: rgb(var(--mui-mainColorChannels-light) / 0.5);
+
+  /* ADD THESE NEW VARIABLES */
+  --content-padding: 24px;
+  --content-padding-mobile: 16px;
 }
 
 [data-mui-color-scheme='dark'] {
@@ -46,6 +50,90 @@ ul:not([class]) {
   margin-block: 1rem;
   padding-inline-start: 40px;
 }
+
+/* ============================================================ */
+/* ADD THESE NEW STYLES FOR BETTER SPACING */
+/* ============================================================ */
+
+/* Main content area with proper padding */
+.layout-content-wrapper {
+  padding: var(--content-padding);
+  min-height: calc(100vh - var(--header-height));
+}
+
+@media (max-width: 600px) {
+  .layout-content-wrapper {
+    padding: var(--content-padding-mobile);
+  }
+}
+
+/* Subtle background pattern for visual interest */
+.layout-content-wrapper::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+[data-mui-color-scheme='dark'] .layout-content-wrapper::before {
+  background: radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+}
+
+/* Better scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+[data-mui-color-scheme='dark'] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+[data-mui-color-scheme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Card improvements - prevent cards from touching edges */
+.MuiCard-root {
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05) !important;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.MuiCard-root:hover {
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiCard-root {
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-mui-color-scheme='dark'] .MuiCard-root:hover {
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ============================================================ */
+/* EXISTING STYLES CONTINUE BELOW */
+/* ============================================================ */
 
 .ps__rail-y {
   inset-inline-end: 0 !important;

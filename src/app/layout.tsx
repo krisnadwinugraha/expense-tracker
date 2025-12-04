@@ -1,6 +1,7 @@
 // Third-party Imports
 import 'react-perfect-scrollbar/dist/css/styles.css'
 import { Toaster } from 'sonner'
+
 // Type Imports
 import type { ChildrenType } from '@core/types'
 
@@ -24,8 +25,18 @@ const RootLayout = ({ children }: ChildrenType) => {
     <html id='__next' dir={direction}>
       <body className='flex is-full min-bs-full flex-auto flex-col'>
         <AuthProvider>
-          {children}
-          <Toaster position='top-right' richColors />
+          <div className='flex flex-col flex-auto min-h-screen bg-[var(--mui-palette-background-default)]'>
+            {children}
+          </div>
+          <Toaster
+            position='top-right'
+            richColors
+            toastOptions={{
+              style: {
+                padding: '16px'
+              }
+            }}
+          />
         </AuthProvider>
       </body>
     </html>
