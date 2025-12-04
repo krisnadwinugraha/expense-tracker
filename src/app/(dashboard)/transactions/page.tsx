@@ -31,7 +31,7 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
   // Pagination Logic
   const pageParam = typeof searchParams.page === 'string' ? searchParams.page : '1'
   const page = Math.max(1, parseInt(pageParam, 10) || 1)
-  const pageSize = 20
+  const pageSize = 5
   const skip = (page - 1) * pageSize
 
   // ============================================================

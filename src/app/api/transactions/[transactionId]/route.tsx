@@ -31,7 +31,7 @@ export async function PATCH(req: Request, { params }: { params: { transactionId:
     }
 
     // Validate transaction type
-    if (!['EXPENSE', 'INCOME'].includes(type)) {
+    if (!['expense', 'income'].includes(type)) {
       return NextResponse.json({ message: 'Invalid transaction type' }, { status: 400 })
     }
 
@@ -134,14 +134,12 @@ export async function PATCH(req: Request, { params }: { params: { transactionId:
             account: { include: { currency: true } }
           }
         }),
-        // Reverse the original transaction from old account
         prisma.account.update({
           where: { id: originalTransaction.accountId },
           data: {
             balance: { increment: -originalEffect }
           }
         }),
-        // Apply new transaction to new account
         prisma.account.update({
           where: { id: accountId },
           data: {
@@ -151,7 +149,6 @@ export async function PATCH(req: Request, { params }: { params: { transactionId:
       )
     }
 
-    // Execute atomic transaction
     const [updatedTransaction] = await prisma.$transaction(transactionUpdates)
 
     return NextResponse.json(updatedTransaction)
@@ -161,9 +158,6 @@ export async function PATCH(req: Request, { params }: { params: { transactionId:
   }
 }
 
-// ============================================================
-// DELETE: Delete a specific transaction and reverse the balance change
-// ============================================================
 export async function DELETE(req: Request, { params }: { params: { transactionId: string } }) {
   const session = await getServerSession(authOptions)
 
@@ -172,7 +166,6 @@ export async function DELETE(req: Request, { params }: { params: { transactionId
   }
 
   try {
-    // Find the transaction to delete with security check
     const transactionToDelete = await prisma.transaction.findFirst({
       where: {
         id: params.transactionId,
@@ -186,13 +179,9 @@ export async function DELETE(req: Request, { params }: { params: { transactionId
       return NextResponse.json({ message: 'Transaction not found or unauthorized' }, { status: 404 })
     }
 
-    // Calculate balance adjustment (reverse the transaction)
     const balanceAdjustment =
-      transactionToDelete.type === TransactionType.expense
-        ? transactionToDelete.amount // Deleting expense adds money back
-        : -transactionToDelete.amount // Deleting income removes money
+      transactionToDelete.type === TransactionType.expense ? transactionToDelete.amount : -transactionToDelete.amount
 
-    // Atomic transaction: Delete record + Update balance
     await prisma.$transaction([
       prisma.transaction.delete({
         where: { id: params.transactionId }

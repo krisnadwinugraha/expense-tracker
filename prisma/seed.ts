@@ -2,17 +2,14 @@
 import dotenv from 'dotenv'
 import path from 'path'
 
-// Load environment variables FIRST, before any other imports
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
 dotenv.config({ path: path.resolve(process.cwd(), '.env') })
 
-// Now import Prisma and other dependencies
 import { PrismaClient } from '@prisma/client'
 import { hash } from 'bcryptjs'
 import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 
-// Create Prisma client directly in seed file instead of importing
 const connectionString = process.env.DATABASE_URL
 
 if (!connectionString) {
